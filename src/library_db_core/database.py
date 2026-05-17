@@ -3,7 +3,8 @@
 import sqlite3
 import os
 from typing import List, Optional, Tuple
-from .models import Book, Employee, Reader
+from datetime import datetime
+from .models import Book, Employee, Reader, Loan
 
 
 class Database:
@@ -262,6 +263,125 @@ class Database:
                 email=row["email"],
                 employee_id=row["employee_id"],
                 is_active=bool(row["is_active"])
+            )
+            for row in rows
+        ]
+
+    # LOAN CRUD
+    
+    def issue_book(self, loan: Loan) -> int:
+        """Issue book to reader
+        
+        Args:
+            loan: Loan instance with book_id, reader_id, employee_id, due_date
+            
+        Returns:
+            ID of created loan
+        """
+        self._execute("""
+            INSERT INTO loans (book_id, reader_id, employee_id, loan_date, due_date, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (loan.book_id, loan.reader_id, loan.employee_id,
+              loan.loan_date or datetime.now().strftime("%Y-%m-%d"),
+              loan.due_date, "active"))
+        return self.cursor.lastrowid
+    
+    def return_book(self, loan_id: int) -> None:
+        """Return book by loan ID
+        
+        Args:
+            loan_id: Loan ID to return
+        """
+        return_date = datetime.now().strftime("%Y-%m-%d")
+        self._execute("""
+            UPDATE loans SET return_date = ? WHERE loan_id = ?
+        """, (return_date, loan_id))
+    
+    def get_loan(self, loan_id: int) -> Optional[Loan]:
+        """Get loan by ID."""
+        row = self._fetchone("""
+            SELECT loan_id, book_id, reader_id, employee_id, loan_date,
+                   due_date, return_date, status
+            FROM loans WHERE loan_id = ?
+        """, (loan_id,))
+        
+        if row:
+            return Loan(
+                book_id=row["book_id"],
+                reader_id=row["reader_id"],
+                employee_id=row["employee_id"],
+                due_date=row["due_date"],
+                loan_id=row["loan_id"],
+                loan_date=row["loan_date"],
+                return_date=row["return_date"],
+                status=row["status"]
+            )
+        return None
+    
+    def get_all_loans(self) -> List[Loan]:
+        """Get all loans"""
+        rows = self._fetchall("""
+            SELECT loan_id, book_id, reader_id, employee_id, loan_date,
+                   due_date, return_date, status
+            FROM loans ORDER BY loan_date DESC
+        """)
+        
+        return [
+            Loan(
+                book_id=row["book_id"],
+                reader_id=row["reader_id"],
+                employee_id=row["employee_id"],
+                due_date=row["due_date"],
+                loan_id=row["loan_id"],
+                loan_date=row["loan_date"],
+                return_date=row["return_date"],
+                status=row["status"]
+            )
+            for row in rows
+        ]
+    
+    def get_active_loans(self) -> List[Loan]:
+        """Get active (not returned) loans"""
+        rows = self._fetchall("""
+            SELECT loan_id, book_id, reader_id, employee_id, loan_date,
+                   due_date, return_date, status
+            FROM loans WHERE status = 'active' OR (return_date IS NULL AND status != 'returned')
+            ORDER BY due_date
+        """)
+        
+        return [
+            Loan(
+                book_id=row["book_id"],
+                reader_id=row["reader_id"],
+                employee_id=row["employee_id"],
+                due_date=row["due_date"],
+                loan_id=row["loan_id"],
+                loan_date=row["loan_date"],
+                return_date=row["return_date"],
+                status=row["status"]
+            )
+            for row in rows
+        ]
+    
+    def get_overdue_loans(self) -> List[Loan]:
+        """Get overdue loans"""
+        rows = self._fetchall("""
+            SELECT loan_id, book_id, reader_id, employee_id, loan_date,
+                   due_date, return_date, status
+            FROM loans WHERE due_date < DATE('now') AND return_date IS NULL
+            ORDER BY due_date
+        """)
+        
+        return [
+            Loan(
+                book_id=row["book_id"],
+                reader_id=row["reader_id"],
+                employee_id=row["employee_id"],
+                due_date=row["due_date"],
+                loan_id=row["loan_id"],
+                loan_date=row["loan_date"],
+                return_date=row["return_date"],
+                status=row["status"]
             )
             for row in rows
         ]
