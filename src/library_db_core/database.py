@@ -428,25 +428,31 @@ class Database:
         return [dict(row) for row in rows]
     
     def search_books(self, search_term: str) -> List[Book]:
-        """Search books by title or author name
+        """Search books by title or author name (case-insensitive).
         
         Args:
-            search_term: Search string
+            search_term: Search string.
             
         Returns:
-            List of matching Book instances
+            List of matching Book instances.
         """
-        pattern = f"%{search_term}%"
+        # For SQLite with Cyrillic: use COLLATE NOCASE or multiple case variants
+        pattern_lower = f"%{search_term.lower()}%"
+        pattern_upper = f"%{search_term.upper()}%"
+        pattern_title = f"%{search_term.capitalize()}%"
+        
         rows = self._fetchall("""
             SELECT b.book_id, b.title, b.author_id, b.category_id, b.publisher_id,
                    b.year_published, b.pages, b.total_copies, b.available, b.description
             FROM books b
             JOIN authors a ON b.author_id = a.author_id
-            WHERE LOWER(b.title) LIKE LOWER(?) 
-               OR LOWER(a.last_name) LIKE LOWER(?) 
-               OR LOWER(a.first_name) LIKE LOWER(?)
+            WHERE b.title LIKE ? OR b.title LIKE ? OR b.title LIKE ?
+               OR a.last_name LIKE ? OR a.last_name LIKE ? OR a.last_name LIKE ?
+               OR a.first_name LIKE ? OR a.first_name LIKE ? OR a.first_name LIKE ?
             ORDER BY b.title
-        """, (pattern, pattern, pattern))
+        """, (pattern_lower, pattern_upper, pattern_title,
+              pattern_lower, pattern_upper, pattern_title,
+              pattern_lower, pattern_upper, pattern_title))
         
         return [
             Book(
