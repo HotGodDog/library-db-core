@@ -53,9 +53,9 @@ class Database:
         return self.cursor.fetchone()
     
     def create_tables(self) -> None:
-        """Create all database tables from schema.sql"""
-        schema_path = os.path.join(os.path.dirname(__file__), "sql", "schema.sql")
-        with open(schema_path, "r", encoding="utf-8") as f:
+        """Create all database tables from scheme.sql"""
+        scheme_path = os.path.join(os.path.dirname(__file__), "sql", "scheme.sql")
+        with open(scheme_path, "r", encoding="utf-8") as f:
             self.cursor.executescript(f.read())
         self.connection.commit()
     
