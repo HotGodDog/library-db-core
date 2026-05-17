@@ -3,8 +3,7 @@
 import sqlite3
 import os
 from typing import List, Optional, Tuple
-
-from .models import Book
+from .models import Book, Employee, Reader
 
 
 class Database:
@@ -59,7 +58,7 @@ class Database:
             self.cursor.executescript(f.read())
         self.connection.commit()
     
-    # КНИГА
+    # BOOK CRUD
     
     def add_book(self, book: Book) -> int:
         """Add new book to database
@@ -137,6 +136,135 @@ class Database:
             for row in rows
         ]
     
+    # READER CRUD
+    
+    def add_reader(self, reader: Reader) -> int:
+        """Add new reader to database
+        
+        Args:
+            reader: Reader instance to add
+            
+        Returns:
+            ID of created reader
+        """
+        self._execute("""
+            INSERT INTO readers (last_name, first_name, middle_name, passport_num,
+                               phone, email, address, reg_date, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (reader.last_name, reader.first_name, reader.middle_name,
+              reader.passport_num, reader.phone, reader.email, reader.address,
+              reader.reg_date, 1 if reader.is_active else 0))
+        return self.cursor.lastrowid
+    
+    def get_reader(self, reader_id: int) -> Optional[Reader]:
+        """Get reader by ID"""
+        row = self._fetchone("""
+            SELECT reader_id, last_name, first_name, middle_name, passport_num,
+                   phone, email, address, reg_date, is_active
+            FROM readers WHERE reader_id = ?
+        """, (reader_id,))
+        
+        if row:
+            return Reader(
+                last_name=row["last_name"],
+                first_name=row["first_name"],
+                middle_name=row["middle_name"],
+                passport_num=row["passport_num"],
+                phone=row["phone"],
+                email=row["email"],
+                address=row["address"],
+                reader_id=row["reader_id"],
+                reg_date=row["reg_date"],
+                is_active=bool(row["is_active"])
+            )
+        return None
+    
+    def get_all_readers(self) -> List[Reader]:
+        """Get all readers"""
+        rows = self._fetchall("""
+            SELECT reader_id, last_name, first_name, middle_name, passport_num,
+                   phone, email, address, reg_date, is_active
+            FROM readers ORDER BY last_name
+        """)
+        
+        return [
+            Reader(
+                last_name=row["last_name"],
+                first_name=row["first_name"],
+                middle_name=row["middle_name"],
+                passport_num=row["passport_num"],
+                phone=row["phone"],
+                email=row["email"],
+                address=row["address"],
+                reader_id=row["reader_id"],
+                reg_date=row["reg_date"],
+                is_active=bool(row["is_active"])
+            )
+            for row in rows
+        ]
+    
+    # EMPLOYEE CRUD
+    
+    def add_employee(self, employee: Employee) -> int:
+        """Add new employee to database
+        
+        Args:
+            employee: Employee instance to add
+            
+        Returns:
+            ID of created employee
+        """
+        self._execute("""
+            INSERT INTO employees (last_name, first_name, middle_name, position_id,
+                                 phone, email, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (employee.last_name, employee.first_name, employee.middle_name,
+              employee.position_id, employee.phone, employee.email,
+              1 if employee.is_active else 0))
+        return self.cursor.lastrowid
+    
+    def get_employee(self, employee_id: int) -> Optional[Employee]:
+        """Get employee by ID"""
+        row = self._fetchone("""
+            SELECT employee_id, last_name, first_name, middle_name, position_id,
+                   phone, email, is_active
+            FROM employees WHERE employee_id = ?
+        """, (employee_id,))
+        
+        if row:
+            return Employee(
+                last_name=row["last_name"],
+                first_name=row["first_name"],
+                middle_name=row["middle_name"],
+                position_id=row["position_id"],
+                phone=row["phone"],
+                email=row["email"],
+                employee_id=row["employee_id"],
+                is_active=bool(row["is_active"])
+            )
+        return None
+    
+    def get_all_employees(self) -> List[Employee]:
+        """Get all employees"""
+        rows = self._fetchall("""
+            SELECT employee_id, last_name, first_name, middle_name, position_id,
+                   phone, email, is_active
+            FROM employees ORDER BY last_name
+        """)
+        
+        return [
+            Employee(
+                last_name=row["last_name"],
+                first_name=row["first_name"],
+                middle_name=row["middle_name"],
+                position_id=row["position_id"],
+                phone=row["phone"],
+                email=row["email"],
+                employee_id=row["employee_id"],
+                is_active=bool(row["is_active"])
+            )
+            for row in rows
+        ]
 
 
     def __enter__(self) -> "Database":
