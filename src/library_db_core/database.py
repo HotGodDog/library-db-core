@@ -386,6 +386,82 @@ class Database:
             for row in rows
         ]
 
+    # REPORTS
+    
+    def get_statistics(self) -> dict:
+        """Get library statistics
+        
+        Returns:
+            Dictionary with counts
+        """
+        stats = {}
+        stats['total_books'] = self._fetchone("SELECT COUNT(*) FROM books")[0]
+        stats['total_copies'] = self._fetchone("SELECT COALESCE(SUM(total_copies), 0) FROM books")[0]
+        stats['available_copies'] = self._fetchone("SELECT COALESCE(SUM(available), 0) FROM books")[0]
+        stats['total_readers'] = self._fetchone("SELECT COUNT(*) FROM readers WHERE is_active = 1")[0]
+        stats['total_employees'] = self._fetchone("SELECT COUNT(*) FROM employees WHERE is_active = 1")[0]
+        stats['active_loans'] = self._fetchone("SELECT COUNT(*) FROM loans WHERE status = 'active'")[0]
+        stats['overdue_loans'] = self._fetchone("SELECT COUNT(*) FROM loans WHERE status = 'overdue'")[0]
+        stats['total_loans'] = self._fetchone("SELECT COUNT(*) FROM loans")[0]
+        return stats
+    
+    def get_popular_books(self, limit: int = 5) -> List[dict]:
+        """Get most popular books by loan count
+        
+        Args:
+            limit: Number of books to return
+            
+        Returns:
+            List of dicts with title, author_name, loan_count
+        """
+        rows = self._fetchall("""
+            SELECT b.title, a.last_name || ' ' || a.first_name AS author_name,
+                   COUNT(l.loan_id) AS loan_count
+            FROM books b
+            JOIN authors a ON b.author_id = a.author_id
+            LEFT JOIN loans l ON b.book_id = l.book_id
+            GROUP BY b.book_id
+            ORDER BY loan_count DESC
+            LIMIT ?
+        """, (limit,))
+        
+        return [dict(row) for row in rows]
+    
+    def search_books(self, search_term: str) -> List[Book]:
+        """Search books by title or author name
+        
+        Args:
+            search_term: Search string
+            
+        Returns:
+            List of matching Book instances
+        """
+        pattern = f"%{search_term}%"
+        rows = self._fetchall("""
+            SELECT b.book_id, b.title, b.author_id, b.category_id, b.publisher_id,
+                   b.year_published, b.pages, b.total_copies, b.available, b.description
+            FROM books b
+            JOIN authors a ON b.author_id = a.author_id
+            WHERE b.title LIKE ? OR a.last_name LIKE ? OR a.first_name LIKE ?
+            ORDER BY b.title
+        """, (pattern, pattern, pattern))
+        
+        return [
+            Book(
+                title=row["title"],
+                author_id=row["author_id"],
+                category_id=row["category_id"],
+                publisher_id=row["publisher_id"],
+                year_published=row["year_published"],
+                pages=row["pages"],
+                total_copies=row["total_copies"],
+                description=row["description"],
+                book_id=row["book_id"],
+                available=row["available"]
+            )
+            for row in rows
+        ]
+
 
     def __enter__(self) -> "Database":
         """Context manager entry"""
