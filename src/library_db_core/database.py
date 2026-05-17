@@ -442,7 +442,9 @@ class Database:
                    b.year_published, b.pages, b.total_copies, b.available, b.description
             FROM books b
             JOIN authors a ON b.author_id = a.author_id
-            WHERE b.title LIKE ? OR a.last_name LIKE ? OR a.first_name LIKE ?
+            WHERE LOWER(b.title) LIKE LOWER(?) 
+               OR LOWER(a.last_name) LIKE LOWER(?) 
+               OR LOWER(a.first_name) LIKE LOWER(?)
             ORDER BY b.title
         """, (pattern, pattern, pattern))
         
