@@ -63,7 +63,7 @@ class Employee:
     """Library employee"""
     
     def __init__(self, last_name: str, first_name: str, middle_name: str,
-                 position_id: int, phone: str, email: str,
+                 position_id: int, phone: str, email: str, password: str = "",
                  employee_id: int = None, is_active: bool = True):
         self.employee_id = employee_id
         self.last_name = last_name
@@ -72,6 +72,7 @@ class Employee:
         self.position_id = position_id
         self.phone = phone
         self.email = email
+        self.password = password
         self.is_active = is_active
     
     @property
@@ -113,8 +114,8 @@ class Reader:
     """Library reader"""
     
     def __init__(self, last_name: str, first_name: str, middle_name: str,
-                 passport_num: str, phone: str, email: str, address: str,
-                 reader_id: int = None, reg_date: str = None,
+                 passport_num: str, phone: str, email: str, password: str = "",
+                 address: str = "", reader_id: int = None, reg_date: str = None,
                  is_active: bool = True):
         self.reader_id = reader_id
         self.last_name = last_name
@@ -123,6 +124,7 @@ class Reader:
         self.passport_num = passport_num
         self.phone = phone
         self.email = email
+        self.password = password
         self.address = address
         self.reg_date = reg_date
         self.is_active = is_active
