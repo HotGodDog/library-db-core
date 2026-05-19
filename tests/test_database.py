@@ -60,6 +60,7 @@ class TestReaderCRUD:
             passport_num="4515123456",
             phone="89011112233",
             email="smirnov@mail.ru",
+            password="qwerty",
             address="Москва"
         )
         reader_id = db.add_reader(reader)
@@ -94,7 +95,8 @@ class TestEmployeeCRUD:
             middle_name="Петровна",
             position_id=sample_data['position_id'],
             phone="89001234567",
-            email="ivanova@lib.ru"
+            email="ivanova@lib.ru",
+            password="123456"
         )
         emp_id = db.add_employee(emp)
         assert emp_id > 0
@@ -165,3 +167,56 @@ class TestLoanCRUD:
         reader_id = db.add_reader(reader)
         
         emp = Employee("Петров", "Петр", "Петрович", sample_data['position_id'], "89022222222", "petrov@test.ru")
+
+
+class TestAuth:
+    """Test authentication methods."""
+    
+    def test_verify_employee(self, sample_data):
+        db = sample_data['db']
+        emp = Employee(
+            last_name="Иванова",
+            first_name="Мария",
+            middle_name="Петровна",
+            position_id=sample_data['position_id'],
+            phone="89001234567",
+            email="ivanova@lib.ru",
+            password="123456"
+        )
+        db.add_employee(emp)
+        
+        # Correct credentials
+        verified = db.verify_employee("ivanova@lib.ru", "123456")
+        assert verified is not None
+        assert verified.last_name == "Иванова"
+        
+        # Wrong password
+        verified = db.verify_employee("ivanova@lib.ru", "wrong")
+        assert verified is None
+        
+        # Wrong email
+        verified = db.verify_employee("wrong@lib.ru", "123456")
+        assert verified is None
+    
+    def test_verify_reader(self, sample_data):
+        db = sample_data['db']
+        reader = Reader(
+            last_name="Смирнов",
+            first_name="Алексей",
+            middle_name="Иванович",
+            passport_num="4515123456",
+            phone="89011112233",
+            email="smirnov@mail.ru",
+            password="qwerty",
+            address="Москва"
+        )
+        db.add_reader(reader)
+        
+        # Correct credentials
+        verified = db.verify_reader("smirnov@mail.ru", "qwerty")
+        assert verified is not None
+        assert verified.last_name == "Смирнов"
+        
+        # Wrong password
+        verified = db.verify_reader("smirnov@mail.ru", "wrong")
+        assert verified is None
