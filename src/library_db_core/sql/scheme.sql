@@ -56,9 +56,9 @@ CREATE TABLE IF NOT EXISTS employees (
     position_id INTEGER NOT NULL REFERENCES positions(position_id),
     phone TEXT NOT NULL,
     email TEXT NOT NULL,
+    password TEXT NOT NULL,
     is_active INTEGER DEFAULT 1
 );
-
 -- Читатели
 CREATE TABLE IF NOT EXISTS readers (
     reader_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS readers (
     passport_num TEXT NOT NULL UNIQUE,
     phone TEXT NOT NULL,
     email TEXT NOT NULL,
+    password TEXT NOT NULL,
     address TEXT NOT NULL,
     reg_date DATE DEFAULT CURRENT_DATE,
     is_active INTEGER DEFAULT 1
