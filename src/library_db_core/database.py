@@ -71,8 +71,7 @@ class Database:
             ID of created book
         """
         self._execute("""
-            INSERT INTO books (title, author_id, category_id, publisher_id, 
-                             year_published, pages, total_copies, available, description)
+            INSERT INTO books (title, author_id, category_id, publisher_id, year_published, pages, total_copies, available, description)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (book.title, book.author_id, book.category_id, book.publisher_id,
               book.year_published, book.pages, book.total_copies, book.available, 
@@ -89,8 +88,7 @@ class Database:
             Book instance or None if not found
         """
         row = self._fetchone("""
-            SELECT book_id, title, author_id, category_id, publisher_id,
-                   year_published, pages, total_copies, available, description
+            SELECT book_id, title, author_id, category_id, publisher_id, year_published, pages, total_copies, available, description
             FROM books WHERE book_id = ?
         """, (book_id,))
         
@@ -116,8 +114,7 @@ class Database:
             List of Book instances
         """
         rows = self._fetchall("""
-            SELECT book_id, title, author_id, category_id, publisher_id,
-                   year_published, pages, total_copies, available, description
+            SELECT book_id, title, author_id, category_id, publisher_id, year_published, pages, total_copies, available, description
             FROM books ORDER BY title
         """)
         
@@ -149,19 +146,17 @@ class Database:
             ID of created reader
         """
         self._execute("""
-            INSERT INTO readers (last_name, first_name, middle_name, passport_num,
-                               phone, email, address, reg_date, is_active)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO readers (last_name, first_name, middle_name, passport_num, phone, email, password, address, reg_date, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (reader.last_name, reader.first_name, reader.middle_name,
-              reader.passport_num, reader.phone, reader.email, reader.address,
-              reader.reg_date, 1 if reader.is_active else 0))
+              reader.passport_num, reader.phone, reader.email, reader.password,
+              reader.address, reader.reg_date, 1 if reader.is_active else 0))
         return self.cursor.lastrowid
     
     def get_reader(self, reader_id: int) -> Optional[Reader]:
         """Get reader by ID"""
         row = self._fetchone("""
-            SELECT reader_id, last_name, first_name, middle_name, passport_num,
-                   phone, email, address, reg_date, is_active
+            SELECT reader_id, last_name, first_name, middle_name, passport_num, phone, email, address, reg_date, is_active
             FROM readers WHERE reader_id = ?
         """, (reader_id,))
         
@@ -183,8 +178,7 @@ class Database:
     def get_all_readers(self) -> List[Reader]:
         """Get all readers"""
         rows = self._fetchall("""
-            SELECT reader_id, last_name, first_name, middle_name, passport_num,
-                   phone, email, address, reg_date, is_active
+            SELECT reader_id, last_name, first_name, middle_name, passport_num, phone, email, address, reg_date, is_active
             FROM readers ORDER BY last_name
         """)
         
@@ -216,19 +210,17 @@ class Database:
             ID of created employee
         """
         self._execute("""
-            INSERT INTO employees (last_name, first_name, middle_name, position_id,
-                                 phone, email, is_active)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO employees (last_name, first_name, middle_name, position_id, phone, email, password, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, (employee.last_name, employee.first_name, employee.middle_name,
-              employee.position_id, employee.phone, employee.email,
+              employee.position_id, employee.phone, employee.email, employee.password,
               1 if employee.is_active else 0))
         return self.cursor.lastrowid
     
     def get_employee(self, employee_id: int) -> Optional[Employee]:
         """Get employee by ID"""
         row = self._fetchone("""
-            SELECT employee_id, last_name, first_name, middle_name, position_id,
-                   phone, email, is_active
+            SELECT employee_id, last_name, first_name, middle_name, position_id, phone, email, is_active
             FROM employees WHERE employee_id = ?
         """, (employee_id,))
         
@@ -248,8 +240,7 @@ class Database:
     def get_all_employees(self) -> List[Employee]:
         """Get all employees"""
         rows = self._fetchall("""
-            SELECT employee_id, last_name, first_name, middle_name, position_id,
-                   phone, email, is_active
+            SELECT employee_id, last_name, first_name, middle_name, position_id, phone, email, is_active
             FROM employees ORDER BY last_name
         """)
         
@@ -300,8 +291,7 @@ class Database:
     def get_loan(self, loan_id: int) -> Optional[Loan]:
         """Get loan by ID."""
         row = self._fetchone("""
-            SELECT loan_id, book_id, reader_id, employee_id, loan_date,
-                   due_date, return_date, status
+            SELECT loan_id, book_id, reader_id, employee_id, loan_date, due_date, return_date, status
             FROM loans WHERE loan_id = ?
         """, (loan_id,))
         
@@ -321,8 +311,7 @@ class Database:
     def get_all_loans(self) -> List[Loan]:
         """Get all loans"""
         rows = self._fetchall("""
-            SELECT loan_id, book_id, reader_id, employee_id, loan_date,
-                   due_date, return_date, status
+            SELECT loan_id, book_id, reader_id, employee_id, loan_date, due_date, return_date, status
             FROM loans ORDER BY loan_date DESC
         """)
         
@@ -343,8 +332,7 @@ class Database:
     def get_active_loans(self) -> List[Loan]:
         """Get active (not returned) loans"""
         rows = self._fetchall("""
-            SELECT loan_id, book_id, reader_id, employee_id, loan_date,
-                   due_date, return_date, status
+            SELECT loan_id, book_id, reader_id, employee_id, loan_date, due_date, return_date, status
             FROM loans WHERE status = 'active' OR (return_date IS NULL AND status != 'returned')
             ORDER BY due_date
         """)
@@ -366,8 +354,7 @@ class Database:
     def get_overdue_loans(self) -> List[Loan]:
         """Get overdue loans"""
         rows = self._fetchall("""
-            SELECT loan_id, book_id, reader_id, employee_id, loan_date,
-                   due_date, return_date, status
+            SELECT loan_id, book_id, reader_id, employee_id, loan_date, due_date, return_date, status
             FROM loans WHERE due_date < DATE('now') AND return_date IS NULL
             ORDER BY due_date
         """)
@@ -415,8 +402,7 @@ class Database:
             List of dicts with title, author_name, loan_count
         """
         rows = self._fetchall("""
-            SELECT b.title, a.last_name || ' ' || a.first_name AS author_name,
-                   COUNT(l.loan_id) AS loan_count
+            SELECT b.title, a.last_name || ' ' || a.first_name AS author_name, COUNT(l.loan_id) AS loan_count
             FROM books b
             JOIN authors a ON b.author_id = a.author_id
             LEFT JOIN loans l ON b.book_id = l.book_id
@@ -469,6 +455,69 @@ class Database:
             )
             for row in rows
         ]
+    
+
+    # AUTH METHODS
+    
+    def get_employee_by_email(self, email: str) -> Optional[Employee]:
+        """Get employee by email."""
+        row = self._fetchone("""
+            SELECT employee_id, last_name, first_name, middle_name, position_id,
+                   phone, email, password, is_active
+            FROM employees WHERE email = ? AND is_active = 1
+        """, (email,))
+        
+        if row:
+            return Employee(
+                last_name=row["last_name"],
+                first_name=row["first_name"],
+                middle_name=row["middle_name"],
+                position_id=row["position_id"],
+                phone=row["phone"],
+                email=row["email"],
+                password=row["password"],
+                employee_id=row["employee_id"],
+                is_active=bool(row["is_active"])
+            )
+        return None
+    
+    def get_reader_by_email(self, email: str) -> Optional[Reader]:
+        """Get reader by email."""
+        row = self._fetchone("""
+            SELECT reader_id, last_name, first_name, middle_name, passport_num,
+                   phone, email, password, address, reg_date, is_active
+            FROM readers WHERE email = ? AND is_active = 1
+        """, (email,))
+        
+        if row:
+            return Reader(
+                last_name=row["last_name"],
+                first_name=row["first_name"],
+                middle_name=row["middle_name"],
+                passport_num=row["passport_num"],
+                phone=row["phone"],
+                email=row["email"],
+                password=row["password"],
+                address=row["address"],
+                reader_id=row["reader_id"],
+                reg_date=row["reg_date"],
+                is_active=bool(row["is_active"])
+            )
+        return None
+    
+    def verify_employee(self, email: str, password: str) -> Optional[Employee]:
+        """Verify employee credentials."""
+        employee = self.get_employee_by_email(email)
+        if employee and employee.password == password:
+            return employee
+        return None
+    
+    def verify_reader(self, email: str, password: str) -> Optional[Reader]:
+        """Verify reader credentials."""
+        reader = self.get_reader_by_email(email)
+        if reader and reader.password == password:
+            return reader
+        return None
 
 
     def __enter__(self) -> "Database":

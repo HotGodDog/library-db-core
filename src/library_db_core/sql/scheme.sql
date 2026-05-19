@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS employees (
     password TEXT NOT NULL,
     is_active INTEGER DEFAULT 1
 );
+
 -- Читатели
 CREATE TABLE IF NOT EXISTS readers (
     reader_id INTEGER PRIMARY KEY AUTOINCREMENT,
