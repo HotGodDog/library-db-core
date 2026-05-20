@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "library-db-core"
-version = "0.2.1"
+version = "0.2.2"
 description = "Core database library for library management system"
 readme = "README.md"
 license = {text = "MIT"}
@@ -25,3 +25,6 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
+
+[tool.setuptools.package-data]
+library_db_core = ["sql/*.sql"]
